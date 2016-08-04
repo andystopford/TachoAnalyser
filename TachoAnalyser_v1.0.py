@@ -5,11 +5,12 @@ sys.path.append("./Modules")
 sys.path.append("./Data")
 from PyQt4 import  QtCore, QtGui
 from UI import Ui_MainWindow
-from TimePopup import TimePopup
 from WorkDay import WorkDay
 from TimeConvert import*
 from Activities import*
+from Break import*
 from Driving import*
+from Working import*
 import re
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -53,7 +54,11 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.selectDriver.addItems(self.drivers)
         # set to insert driver names alphabetically
         self.ui.selectDriver.setInsertPolicy(6)
-        self.timeConvert = TimeConvert()
+        self.TC = TimeConvert()
+        self.break_list = []
+        self.driving_list = []
+        self.work_list = []
+        self.driving_block = 0
 
     def select_driver(self, driver):
         self.driver = driver
@@ -68,53 +73,60 @@ class Mainwindow (QtGui.QMainWindow):
     def calc(self):
         # Activity change info from readesm is pasted in and converted to
         # minutes for start, end and duration
-        text = self.ui.textInput.toPlainText()
-        text = str(text)
+        #text = self.ui.textInput.toPlainText()
+        text = open('./Data/testFile_2', 'r')
+        text = text.read()
+        #text = str(text)
+
         working = re.findall(r'work, from (.*?) to (.*?) .*', text)
         for item in working:
             start = item[0]
             end = item[1]
-            start = self.timeConvert.hrs_to_mins(start)
-            end = self.timeConvert.hrs_to_mins(end)
-            self.activity = Activity("Working", start, end)
-            self.activity.calc_duration()
-            self.workDay.activity_list.append(self.activity)
+            start = self.TC.hrs_to_mins(start)
+            end = self.TC.hrs_to_mins(end)
+            duration = self.TC.calc_duration(start, end)
+            self.workingClass = WorkingClass(self, start, end, duration)
+            self.work_list.append(self.workingClass)
+
         driving = re.findall(r'driving, from (.*?) to (.*?) .*', text)
         for item in driving:
             start = item[0]
             end = item[1]
-            start = self.timeConvert.hrs_to_mins(start)
-            end = self.timeConvert.hrs_to_mins(end)
-            self.activity = Activity("Driving", start, end)
-            self.activity.calc_duration()
-            self.workDay.activity_list.append(self.activity)
+            start = self.TC.hrs_to_mins(start)
+            end = self.TC.hrs_to_mins(end)
+            duration = self.TC.calc_duration(start, end)
+            self.drivingClass = DrivingClass(self, start, end, duration)
+            self.driving_list.append(self.drivingClass)
+
         break_rest = re.findall(r'break/rest, from (.*?) to (.*?) .*', text)
+        b_r_index = 0
         for item in break_rest:
             start = item[0]
             end = item[1]
-            start = self.timeConvert.hrs_to_mins(start)
-            end = self.timeConvert.hrs_to_mins(end)
-            self.activity = Activity("Break", start, end)
-            self.activity.calc_duration()
-            self.workDay.activity_list.append(self.activity)
+            start = self.TC.hrs_to_mins(start)
+            end = self.TC.hrs_to_mins(end)
+            duration = self.TC.calc_duration(start, end)
+            self.breakClass = BreakClass(self, start, end, duration, b_r_index)
+            self.break_list.append(self.breakClass)
+            b_r_index += 1
+
         break_short = re.findall(r'short break, from (.*?) to (.*?) .*', text)
         for item in break_short:
             start = item[0]
             end = item[1]
-            start = self.timeConvert.hrs_to_mins(start)
-            end = self.timeConvert.hrs_to_mins(end)
+            start = self.TC.hrs_to_mins(start)
+            end = self.TC.hrs_to_mins(end)
             self.activity = Activity("Short Break", start, end)
             self.activity.calc_duration()
-            self.workDay.activity_list.append(self.activity)
-        self.workDay.sort()
-        self.workDay.check_breaks()
-        self.show_activities()
+
+        self.break_list[0].set_state(-1)
+
 
 
     def show_activities(self):
         self.ui.dayView.clear()
         for item in reversed(self.workDay.activity_list):
-            item.duration = self.timeConvert.mins_to_hrs(item.duration)
+            item.duration = self.TC.mins_to_hrs(item.duration)
             time = QtGui.QTableWidgetItem(str(item.duration))
             mode = QtGui.QTableWidgetItem(item.mode)
             self.ui.dayView.insertRow(0)

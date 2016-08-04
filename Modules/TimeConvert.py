@@ -20,3 +20,7 @@ class TimeConvert:
         mins = mins.zfill(2)
         return hours, mins
 
+    def calc_duration(self, start, end):
+        duration = end - start
+        return duration
+
