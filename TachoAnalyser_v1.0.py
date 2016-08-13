@@ -3,7 +3,7 @@ import sys
 sys.path.append("./UI")
 sys.path.append("./Modules")
 sys.path.append("./Data")
-from PyQt4 import  QtCore, QtGui
+from PyQt4 import QtCore, QtGui
 from UI import Ui_MainWindow
 from WorkDay import WorkDay
 from TimeConvert import*
@@ -11,6 +11,7 @@ from Activities import*
 from Break import*
 from Driving import*
 from Working import*
+from TimeLine import*
 import re
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -26,6 +27,7 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 ####################################################################################
+
 
 class Mainwindow (QtGui.QMainWindow):
     def __init__(self, parent = None):
@@ -60,6 +62,12 @@ class Mainwindow (QtGui.QMainWindow):
         self.work_list = []
         self.driving_block = 0
 
+        self.timeLine = TimeLine(self)
+        self.ui.workGraph.setScene(self.timeLine)
+
+
+
+
     def select_driver(self, driver):
         self.driver = driver
         print (self.driver)
@@ -73,10 +81,11 @@ class Mainwindow (QtGui.QMainWindow):
     def calc(self):
         # Activity change info from readesm is pasted in and converted to
         # minutes for start, end and duration
-        #text = self.ui.textInput.toPlainText()
-        text = open('./Data/testFile_2', 'r')
-        text = text.read()
-        #text = str(text)
+        text = self.ui.textInput.toPlainText()
+        text = str(text)
+        # Open test file
+        #text = open('./Data/testFile_2', 'r')
+        #text = text.read()
 
         working = re.findall(r'work, from (.*?) to (.*?) .*', text)
         for item in working:
@@ -120,6 +129,7 @@ class Mainwindow (QtGui.QMainWindow):
             self.activity.calc_duration()
 
         self.break_list[0].set_state(-1)
+        self.timeLine.add_activities()
 
 
 

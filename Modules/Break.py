@@ -15,6 +15,8 @@ class BreakClass:
 
     def set_state(self, break_prev):
         # Adds previous break to current
+        start_time = self.TC.mins_to_hrs(self.start)
+        print("Break starting at", start_time)
         if break_prev == -1:
             self.break_curr = 0
         else:
@@ -31,6 +33,7 @@ class BreakClass:
             self.break_curr = 30
         elif self.duration >= 45:
             self.break_curr = 45
+            print("45 min+ break")
         else:
             self.break_curr = 0
         return self.break_curr
@@ -68,9 +71,12 @@ class BreakClass:
                     print("driving_block total = ", self.parent.driving_block, "mins")
                     LPB = block - 270
                     inf_time = dt.end - LPB
+                    self.parent.timeLine.info_flag(inf_time)
+                    # For dev:
                     inf_time = self.TC.mins_to_hrs(inf_time)
                     print("inf time", inf_time)
-                self.set_blocks(child)
+
+        self.set_blocks(child)
 
 
 
