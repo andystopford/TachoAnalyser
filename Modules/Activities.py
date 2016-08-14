@@ -1,13 +1,13 @@
 
 class Activity:
-    def __init__(self, act_mode, start, end):
+    def __init__(self, mode, start, end, duration):
         self.start = start
         self.end = end
-        self.mode = act_mode
-        self.duration = 0
+        self.mode = mode
+        self.duration = duration
 
-    def calc_duration(self):
-        self.duration = self.end - self.start
+
+
 
 
 

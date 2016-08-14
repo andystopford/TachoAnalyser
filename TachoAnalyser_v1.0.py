@@ -12,6 +12,7 @@ from Break import*
 from Driving import*
 from Working import*
 from TimeLine import*
+from Calculator import*
 import re
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -40,9 +41,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.drivers = ['a', 'b', 'c']
         ##################################################
         # Signals
-        #self.ui.buttonDriving.clicked.connect(self.driving)
-        #self.ui.buttonWorking.clicked.connect(self.working)
-        #self.ui.buttonBreak.clicked.connect(self.resting)
+        self.ui.buttonClear.clicked.connect(self.clear_input)
         self.ui.buttonCalc.clicked.connect(self.calc)
         self.ui.calendar.clicked.connect(self.set_day)
         self.ui.selectDriver.activated[str].connect(self.select_driver)
@@ -50,23 +49,24 @@ class Mainwindow (QtGui.QMainWindow):
         # Initialise
         header = self.ui.dayView.horizontalHeader()
         header.setResizeMode(QtGui.QHeaderView.Stretch)
-        self.ui.buttonDriving.setEnabled(False)
-        self.ui.buttonWorking.setEnabled(False)
-        self.ui.buttonBreak.setEnabled(False)
         self.ui.selectDriver.addItems(self.drivers)
         # set to insert driver names alphabetically
         self.ui.selectDriver.setInsertPolicy(6)
-        self.TC = TimeConvert()
+
         self.break_list = []
         self.driving_list = []
         self.work_list = []
         self.driving_block = 0
+        self.activity_list = []
 
+        self.TC = TimeConvert()
         self.timeLine = TimeLine(self)
         self.ui.workGraph.setScene(self.timeLine)
+        self.calculator = Calculator(self)
 
 
-
+    def clear_input(self):
+        self.ui.textInput.clear()
 
     def select_driver(self, driver):
         self.driver = driver
@@ -96,6 +96,8 @@ class Mainwindow (QtGui.QMainWindow):
             duration = self.TC.calc_duration(start, end)
             self.workingClass = WorkingClass(self, start, end, duration)
             self.work_list.append(self.workingClass)
+            activity = Activity("Working", start, end, duration)
+            self.activity_list.append(activity)
 
         driving = re.findall(r'driving, from (.*?) to (.*?) .*', text)
         for item in driving:
@@ -106,6 +108,8 @@ class Mainwindow (QtGui.QMainWindow):
             duration = self.TC.calc_duration(start, end)
             self.drivingClass = DrivingClass(self, start, end, duration)
             self.driving_list.append(self.drivingClass)
+            activity = Activity("Driving", start, end, duration)
+            self.activity_list.append(activity)
 
         break_rest = re.findall(r'break/rest, from (.*?) to (.*?) .*', text)
         b_r_index = 0
@@ -118,6 +122,8 @@ class Mainwindow (QtGui.QMainWindow):
             self.breakClass = BreakClass(self, start, end, duration, b_r_index)
             self.break_list.append(self.breakClass)
             b_r_index += 1
+            activity = Activity("Break", start, end, duration)
+            self.activity_list.append(activity)
 
         break_short = re.findall(r'short break, from (.*?) to (.*?) .*', text)
         for item in break_short:
@@ -130,8 +136,8 @@ class Mainwindow (QtGui.QMainWindow):
 
         self.break_list[0].set_state(-1)
         self.timeLine.add_activities()
-
-
+        self.activity_list.sort(key=lambda  x: x.start, reverse=False)
+        self.calculator.timers()
 
     def show_activities(self):
         self.ui.dayView.clear()
