@@ -6,63 +6,74 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1020</width>
-    <height>583</height>
+    <width>1052</width>
+    <height>721</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QFormLayout" name="formLayout">
+   <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QComboBox" name="selectDriver">
-        <property name="editable">
-         <bool>true</bool>
-        </property>
-        <property name="currentText" stdset="0">
-         <string>Select Driver...</string>
-        </property>
-        <item>
-         <property name="text">
-          <string>Select Driver...</string>
-         </property>
-        </item>
+     <widget class="QSplitter" name="splitter_4">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QSplitter" name="splitter_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="QWidget" name="layoutWidget">
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QPushButton" name="buttonSave">
+           <property name="text">
+            <string>Save</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="selectDriver">
+           <property name="editable">
+            <bool>true</bool>
+           </property>
+           <property name="currentText" stdset="0">
+            <string>Select Driver...</string>
+           </property>
+           <item>
+            <property name="text">
+             <string>Select Driver...</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
        </widget>
-      </item>
-      <item>
-       <widget class="QTextEdit" name="textInput"/>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QPushButton" name="buttonCalc">
-          <property name="text">
-           <string>Calculate</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="buttonClear">
-          <property name="text">
-           <string>Clear</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-    <item row="0" column="1">
-     <layout class="QVBoxLayout" name="verticalLayout_4">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+       <widget class="QSplitter" name="splitter">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <widget class="QTextEdit" name="textInput"/>
+        <widget class="QWidget" name="layoutWidget">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QCalendarWidget" name="calendar"/>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QPushButton" name="buttonCalc">
+              <property name="text">
+               <string>Calculate</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonClear">
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QTableWidget" name="dayView">
@@ -74,43 +85,78 @@
             </attribute>
             <column>
              <property name="text">
-              <string>Time</string>
+              <string>Hours</string>
+             </property>
+             <property name="textAlignment">
+              <set>AlignHCenter|AlignVCenter|AlignCenter</set>
              </property>
             </column>
             <column>
              <property name="text">
               <string>Activity</string>
              </property>
+             <property name="textAlignment">
+              <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+             </property>
             </column>
             <column>
              <property name="text">
               <string>Infringement</string>
              </property>
+             <property name="textAlignment">
+              <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+             </property>
             </column>
            </widget>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="QListWidget" name="synopsis"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QGraphicsView" name="workGraph"/>
-      </item>
-     </layout>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QSplitter" name="splitter_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <widget class="QCalendarWidget" name="calendar"/>
+           <widget class="QTextEdit" name="commentsBox"/>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonAdd">
+           <property name="text">
+            <string>Add</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QGraphicsView" name="workGraph">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>150</height>
+        </size>
+       </property>
+      </widget>
+     </widget>
     </item>
    </layout>
-   <zorder></zorder>
-   <zorder>buttonClear</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1020</width>
+     <width>1052</width>
      <height>29</height>
     </rect>
    </property>

@@ -10,10 +10,9 @@ class TimeLine(QtGui.QGraphicsScene):
         self.setSceneRect(0, 0, 1440, 50)   # Needs to be multiple of 1440 minutes (1 day)
         col = QtGui.QColor()
         col.setRgb(255, 0, 0)
-        #self.activity_box(60, 20, 100, col)
+        self.box_list = []
+        self.flag_list = []
         self.draw_ticks()
-        #self.info_flag()
-        #self.add_activities()
 
     def draw_ticks(self):
         # Draw the timeline
@@ -25,7 +24,6 @@ class TimeLine(QtGui.QGraphicsScene):
         item_list.append(bot_line)
         ticks = numpy.arange(0, 1490, 60)
         hours = range(0, 25)
-        print(ticks)
         for item in ticks:
             tick = QtGui.QGraphicsLineItem(item, 20, item, 40)
             item_list.append(tick)
@@ -53,40 +51,41 @@ class TimeLine(QtGui.QGraphicsScene):
 
     def add_activities(self):
         col = QtGui.QColor()
-        for item in self.parent.driving_list:
-            col.setRgb(255, 150, 150)   # Pink
+        for item in self.parent.activity_list:
+            if item.mode == "Driving":
+                col.setRgb(255, 150, 150)  # Pink
+            if item.mode == "Break":
+                col.setRgb(150, 255, 150)  # Pale green
+            if item.mode == "Working":
+                col.setRgb(255, 213, 140)  # pale orange
             start = item.start
-            end = item.end
             duration = item.duration
             self.activity_box(start, 20, duration, col)
-        for item in self.parent.break_list:
-            col.setRgb(150, 255, 150)  # Pale green
-            start = item.start
-            end = item.end
-            duration = item.duration
-            self.activity_box(start, 20, duration, col)
-        for item in self.parent.work_list:
-            col.setRgb(255, 213, 140)   # pale orange
-            start = item.start
-            end = item.end
-            duration = item.duration
-            self.activity_box(start, 20, duration, col)
-
 
     def activity_box(self, x, y, w, col):
-        xform = QtGui.QTransform()
         box = QtGui.QGraphicsRectItem(x, y, w, 20)
         box.setPen(col)
         box.setBrush(col)
         self.addItem(box)
-        #box.setTransform(xform.translate(200, 20))
         box.setZValue(0.5)
-        #box.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+        self.box_list.append(box)
 
-    def info_flag(self, time):
+    def infr_flag(self, time, rule):
         # To align the flag's pointer correctly, subtract 25 from the desired minute
         xform = QtGui.QTransform()
-        flag = QtSvg.QGraphicsSvgItem('./icons/drive_infr.svg')
+        if rule == "hgv":
+            flag = QtSvg.QGraphicsSvgItem('./icons/drive_infr.svg')
+            flag.setTransform(xform.translate((time - 25), -20))
+        else:
+            flag = QtSvg.QGraphicsSvgItem('./icons/wtd_infr.svg')
+            flag.setTransform(xform.translate((time - 25), 45))
         self.addItem(flag)
-        flag.setTransform(xform.translate((time - 25), -20))
+        self.flag_list.append(flag)
 
+    def clear_timeline(self):
+        for box in self.box_list:
+            self.removeItem(box)
+        for flag in self.flag_list:
+            self.removeItem(flag)
+        self.flag_list = []
+        self.box_list = []

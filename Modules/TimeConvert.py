@@ -8,8 +8,7 @@ class TimeConvert:
         mins = time[3:5]
         hours = int(hours)
         mins = int(mins)
-        mins = (hours*60) + mins
-        return mins
+        return (hours*60) + mins
 
     def mins_to_hrs(self, time):
         hours = int(time / 60)
@@ -18,9 +17,8 @@ class TimeConvert:
         mins = str(mins)
         hours = hours.zfill(2)  # Add leading zero to single digits
         mins = mins.zfill(2)
-        return hours, mins
+        return str(hours + ":" + mins)
 
     def calc_duration(self, start, end):
-        duration = end - start
-        return duration
+        return end - start
 
