@@ -1,5 +1,8 @@
-from PyQt4 import QtCore, QtGui, Qt
+from PyQt4 import QtGui
+
 
 class SortFilter(QtGui.QSortFilterProxyModel):
-    def __init__(self, parent):
-        QtGui.QSortFilterProxyModel.__init__(self)
+    def __init__(self, parent=None):
+        super(SortFilter, self).__init__(parent)
+
+

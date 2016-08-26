@@ -13,6 +13,7 @@ class TimeLine(QtGui.QGraphicsScene):
         self.box_list = []
         self.flag_list = []
         self.draw_ticks()
+        self.draw_key()
 
     def draw_ticks(self):
         # Draw the timeline
@@ -48,6 +49,38 @@ class TimeLine(QtGui.QGraphicsScene):
         scale.setBrush(col)
         self.addItem(scale)
         scale.setZValue(0)
+
+    def draw_key(self):
+        xform = QtGui.QTransform()
+        col = QtGui.QColor()
+
+        drive_box = QtGui.QGraphicsRectItem(590, 90, 50, 20)
+        col.setRgb(255, 150, 150)
+        drive_box.setBrush(col)
+        self.addItem(drive_box)
+        drive_box_label = QtGui.QGraphicsTextItem("Driving")
+        self.addItem(drive_box_label)
+        drive_box_label.setTransform(xform.translate(590, 87))
+
+        break_box = QtGui.QGraphicsRectItem(690, 90, 50, 20)
+        col.setRgb(150, 255, 150)
+        break_box.setBrush(col)
+        self.addItem(break_box)
+        break_box_label = QtGui.QGraphicsTextItem("Break")
+        self.addItem(break_box_label)
+        break_box_label.setTransform(xform.translate(105, 0))
+
+        work_box = QtGui.QGraphicsRectItem(790, 90, 50, 20)
+        col.setRgb(255, 213, 140)
+        work_box.setBrush(col)
+        self.addItem(work_box)
+        work_box_label = QtGui.QGraphicsTextItem("Working")
+        self.addItem(work_box_label)
+        work_box_label.setTransform(xform.translate(93, 0))
+
+
+
+
 
     def add_activities(self):
         col = QtGui.QColor()

@@ -1,12 +1,12 @@
 from PyQt4 import QtGui, QtCore
 
 
-class TreeView(QtGui.QTreeView):
+class TableView(QtGui.QTableView):
     """
     Overrides QTreeView to handle selection events
     """
     def __init__(self, parent):
-        super(TreeView, self).__init__(parent)
+        super(TableView, self).__init__(parent)
         self.parent = parent
         self.set_pos()
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -20,22 +20,24 @@ class TreeView(QtGui.QTreeView):
         Set up a QItemSelectionModel - sends the current and previous selection
         - we want the current ([0]) selection
         """
-        super(TreeView, self).setModel(self.parent.model)
+        super(TableView, self).setModel(self.parent.model)
         self.connect(self.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                      self.get_selection)
+        self.setColumnHidden(2, True)
+        header = self.horizontalHeader()
+        header.setResizeMode(1)
 
     def get_selection(self):
         index = self.selectedIndexes()[0]
         date = self.parent.model.itemFromIndex(index)
-        print(date.text())
-        comment = date.child(0, 0)
-        activities = comment.child(0, 0)
+        row = date.row()
+        comment = self.parent.model.item(row, 1)
+        activities = self.parent.model.item(row, 2)
         self.parent.clear_input()
         self.parent.ui.commentsBox.setText(comment.text())
         self.parent.ui.textInput.setText(activities.text())
         self.parent.read_input()
-        # if (!index.isValid()
 
     def right_click(self):
         menu = QtGui.QMenu(self)
@@ -48,3 +50,4 @@ class TreeView(QtGui.QTreeView):
         index = self.selectedIndexes()[0]
         item = self.parent.model.itemFromIndex(index)
         self.parent.model.removeRow(item.row())
+        self.parent.clear_input()

@@ -1,6 +1,5 @@
 #!/usr/bin/python3.4
 import sys
-
 sys.path.append("./UI")
 sys.path.append("./Modules")
 sys.path.append("./Data")
@@ -11,9 +10,9 @@ from Activities import *
 from TimeLine import *
 from Calculator import *
 from IO import *
-from DataModel import *
-from TreeView import *
+from TableView import *
 from SortFilter import*
+from YearPlanner import*
 import re
 
 try:
@@ -41,8 +40,8 @@ class Mainwindow(QtGui.QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowTitle("TachoAnalyser v 1.0")
         ##################################################
-        self.curr_day = QtCore.QDate()
         self.drivers = ['Andy', 'Chris', 'Dan', 'Richard']
         self.months = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07',
                        'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
@@ -59,55 +58,65 @@ class Mainwindow(QtGui.QMainWindow):
         header.setResizeMode(QtGui.QHeaderView.Stretch)
         self.ui.selectDriver.addItems(self.drivers)
         # set to insert driver names alphabetically
+        self.driver = ""
         self.ui.selectDriver.setInsertPolicy(6)
         self.activity_list = []
         self.TC = TimeConvert()
         self.timeLine = TimeLine(self)
         self.ui.workGraph.setScene(self.timeLine)
         self.calculator = Calculator(self)
-        self.treeView = TreeView(self)
-        self.ui.verticalLayout_3.addWidget(self.treeView)
-        # Data model
-        self.model = DataModel(self)
+        self.tableView = TableView(self)
+        self.ui.verticalLayout_3.addWidget(self.tableView)
+        self.yearPlanner = YearPlanner()
+        self.ui.splitter_4.addWidget(self.yearPlanner)
+
+        self.init_model()
+
+    def init_model(self):
+        # Data model - called at startup and on driver reselection
+        self.model = QtGui.QStandardItemModel(0, 3, self)
+        self.model.setHorizontalHeaderLabels(["Date", "Notes"])
         self.sortFilter = SortFilter(self)
         self.sortFilter.setSourceModel(self.model)
-        self.treeView.setModel(self.sortFilter)
-        #self.treeView.setSortingEnabled(True)
+        self.sortFilter.setDynamicSortFilter(True)
+        self.tableView.setModel(self.sortFilter)
+        self.tableView.setSortingEnabled(True)
 
     def clear_input(self):
         self.ui.textInput.clear()
         self.activity_list = []
         self.timeLine.clear_timeline()
         self.ui.dayView.clear()
+        self.ui.commentsBox.clear()
         self.calculator.clear()
 
     def select_driver(self, driver):
-        # TODO Clear previous driver
-        path = './Data/' + driver + '.xml'
-        self.data_file = DataIO(self, path)
-        self.data_file.open()
-        #for item in self.model.findItems('15.07.2016:'):
-        #    print(item.text())
-        self.model.sort(0, 1)
+        self.init_model()
+        self.clear_input()
+        self.driver = driver
+        path = './Data/' + self.driver + '.xml'  # Test Path
+        dataIO = DataIO(self, path)
+        dataIO.open()
+        self.ui.dayView.setHorizontalHeaderLabels(['Hours', 'Activity',
+                                                   'Infringement'])
 
     def read_input(self):
         # Activity change info from readesm is pasted in and converted to
         # minutes for start, end and duration
         text = self.ui.textInput.toPlainText()
         text = str(text)
-        # Open test file
-        # text = open('./Data/testFile_2', 'r')
-        # text = text.read()
-        # Get date
         date_line = re.search(r'Activities on (.*?) .*', text)
         date = (date_line.group())
         day = (date[22:24])
         day = day.strip()
         day = day.zfill(2)
+        day = int(day)
         month_str = (date[18:21])
         month = self.months[month_str]
-        year = (date[-5:])
-        self.date = str(day + '.' + month + '.' +year)   # TODO highlight in calendar
+        month = int(month)
+        year = (date[-5:-1])
+        year = int(year)
+        self.date = QtCore.QDate(year, month, day)
 
         # Get Activities
         working = re.findall(r'work, from (.*?) to (.*?) .*', text)
@@ -162,12 +171,21 @@ class Mainwindow(QtGui.QMainWindow):
                                                    'Infringement'])
 
     def add(self):
-        self.data_file.add_day()
+        date = QtCore.QDate(self.date)
+        activities = self.ui.textInput.toPlainText()
+        comments = self.ui.commentsBox.toPlainText()
+        self.add_day(date, comments, activities)
+
+    def add_day(self, date, comments, activities):
+        self.model.insertRow(0)
+        self.model.setData(self.model.index(0, 0), date)
+        self.model.setData(self.model.index(0, 1), comments)
+        self.model.setData(self.model.index(0, 2), activities)
 
     def save(self):
-        #path = './Data/' + self.driver + '.xml'
-        # data_file = DataIO(self, path)
-        self.data_file.save()
+        path = './Data/' + self.driver + '.xml'  # Test path
+        dataIO = DataIO(self, path)
+        dataIO.save()
 
 
 if __name__ == "__main__":

@@ -89,8 +89,6 @@ class Ui_MainWindow(object):
         self.splitter_2 = QtGui.QSplitter(self.layoutWidget2)
         self.splitter_2.setOrientation(QtCore.Qt.Vertical)
         self.splitter_2.setObjectName(_fromUtf8("splitter_2"))
-        self.calendar = QtGui.QCalendarWidget(self.splitter_2)
-        self.calendar.setObjectName(_fromUtf8("calendar"))
         self.commentsBox = QtGui.QTextEdit(self.splitter_2)
         self.commentsBox.setObjectName(_fromUtf8("commentsBox"))
         self.verticalLayout_2.addWidget(self.splitter_2)
