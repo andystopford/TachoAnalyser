@@ -7,20 +7,34 @@ class DataIO:
         self.path = path
         self.parent = parent    # i.e. Ui_MainWindow
 
+    def get_years(self):
+        with open(self.path, "r") as fo:
+            tree = ET.ElementTree(file=self.path)
+            root = tree.getroot()
+            for date in root:
+                if date.text is not None:
+                    year = date.text[0:4]
+                else:
+                    year = str(self.parent.year)
+                if year not in self.parent.key_list:
+                    self.parent.key_list.append(year)
+
     def open(self):
         with open(self.path, "r") as fo:
             tree = ET.ElementTree(file=self.path)
             root = tree.getroot()
             for date in root:
                 activities = date[0]
+                self.add_flags(activities)
                 comments = date[1]
                 self.parent.add_day(date.text, comments.text, activities.text)
 
-    def add_day(self):
-        activities = self.parent.ui.textInput.toPlainText()
-        comments = self.parent.ui.commentsBox.toPlainText()
-        model = self.parent.model
-        model.add_date(self.parent.date, activities, comments)
+    def add_flags(self, activities):
+        # calc for each day in turn to add infr_flag and set colour etc.
+        self.parent.textInput.clear()
+        self.parent.textInput.setText(activities.text)
+        self.parent.read_input()
+        self.parent.clear_input()
 
     def save(self):
         model = self.parent.model

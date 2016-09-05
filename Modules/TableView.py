@@ -3,7 +3,7 @@ from PyQt4 import QtGui, QtCore
 
 class TableView(QtGui.QTableView):
     """
-    Overrides QTreeView to handle selection events
+    Overrides QTableView to handle selection events
     """
     def __init__(self, parent):
         super(TableView, self).__init__(parent)
@@ -15,7 +15,7 @@ class TableView(QtGui.QTableView):
     def set_pos(self):
         self.setGeometry(QtCore.QRect(1, 38, 340, 414))
 
-    def setModel(self, model):
+    def set_selection_model(self, model):
         """
         Set up a QItemSelectionModel - sends the current and previous selection
         - we want the current ([0]) selection

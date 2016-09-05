@@ -78,13 +78,9 @@ class TimeLine(QtGui.QGraphicsScene):
         self.addItem(work_box_label)
         work_box_label.setTransform(xform.translate(93, 0))
 
-
-
-
-
-    def add_activities(self):
+    def add_activities(self, activity_list):
         col = QtGui.QColor()
-        for item in self.parent.activity_list:
+        for item in activity_list:
             if item.mode == "Driving":
                 col.setRgb(255, 150, 150)  # Pink
             if item.mode == "Break":
