@@ -1,10 +1,28 @@
 #!/usr/bin/python3.4
+######################################################################
+
+# Copyright (C)2016 Andy Stopford
+#
+# This is free software: you can redistribute it and/or modify
+# under the terms of the GNU General Public License
+# as published by the Free Software Foundation; version 2.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+#
+# Version 2.1 - Automatic calculate and clear
+#######################################################################
 import sys
 
-# sys.path.append("./UI")
 sys.path.append("./Modules")
 sys.path.append("./Data")
-from PyQt4 import QtCore, QtGui
+sys.path.append("./icons")
+from PyQt4 import QtCore, QtGui, Qt
 from Activities import *
 from Calculator import *
 from IO import *
@@ -49,13 +67,12 @@ class MainWindow(QtGui.QMainWindow):
         self.label = QtGui.QLabel()
         self.textInput = QtGui.QTextEdit()
         self.buttonClear = QtGui.QPushButton("Clear")
-        self.buttonCalc = QtGui.QPushButton("Calculate")
         self.commentsBox = QtGui.QTextEdit()
         self.dayView = QtGui.QTableWidget()
         header = self.dayView.horizontalHeader()
         header.setResizeMode(QtGui.QHeaderView.Stretch)
         self.dayView.setColumnCount(3)
-        self.dayView.setHorizontalHeaderLabels(['Hours', 'Activity',
+        self.dayView.setHorizontalHeaderLabels(['Activity Length', 'Activity',
                                                 'Infringement'])
         self.buttonAdd = QtGui.QPushButton("Add")
         self.workGraph = QtGui.QGraphicsView()
@@ -73,11 +90,11 @@ class MainWindow(QtGui.QMainWindow):
         top_button_widget = QtGui.QWidget()
         top_button_layout = QtGui.QHBoxLayout()
         top_button_widget.setLayout(top_button_layout)
-        top_button_layout.addWidget(self.buttonSave)
+        top_button_layout.addWidget(self.selectDriver)
         top_button_layout.addWidget(self.buttonBack)
         top_button_layout.addWidget(self.label)
         top_button_layout.addWidget(self.buttonForward)
-        top_button_layout.addWidget(self.selectDriver)
+        top_button_layout.addWidget(self.buttonSave)
         self.label.setAlignment(Qt.Qt.AlignCenter)
         # Calendar secn
         top_box = QtGui.QWidget()
@@ -90,7 +107,6 @@ class MainWindow(QtGui.QMainWindow):
         calc_box_layout = QtGui.QHBoxLayout()
         calc_box.setLayout(calc_box_layout)
         calc_box_layout.addWidget(self.buttonClear)
-        calc_box_layout.addWidget(self.buttonCalc)
         # Left mid top
         textInput_box = QtGui.QWidget()
         textInput_layout = QtGui.QVBoxLayout()
@@ -115,6 +131,7 @@ class MainWindow(QtGui.QMainWindow):
         textInput_layout.addWidget(self.dayView)
         # Right mid
         splitter_R_mid = QtGui.QSplitter(Qt.Qt.Vertical)
+
         splitter_R_mid.addWidget(dayView_box)
         splitter_R_mid.addWidget(add_box)
         # Middle
@@ -131,31 +148,34 @@ class MainWindow(QtGui.QMainWindow):
         splitter_bottom.addWidget(self.workGraph)
         box.addWidget(splitter_bottom)
         self.centralWidget.setLayout(box)
-        # QtGui.QApplication.setStyle(Qt.QStyleFactory.create('cleanlooks'))
+        stylesheet = "QSplitter::handle{background: gray; width: 1px; height: 1px;}"
+        splitter_bottom.setStyleSheet(stylesheet)
+        QtGui.QApplication.setStyle(Qt.QStyleFactory.create('cleanlooks'))
         self.resize(1125, 702)
-        self.setWindowTitle("TachoAnalyser v 1.0")
+        self.setWindowTitle("TachoAnalyser v 2.1")
+        self.setWindowIcon(QtGui.QIcon('./icons/icon.png'))
         ##################################################
         # Signals
         self.buttonBack.clicked.connect(self.year_back)
         self.buttonForward.clicked.connect(self.year_forward)
         self.buttonClear.clicked.connect(self.clear_input)
-        self.buttonCalc.clicked.connect(self.read_input)
         self.selectDriver.activated[str].connect(self.select_driver)
         self.buttonAdd.clicked.connect(self.add)
         self.buttonSave.clicked.connect(self.save)
+        self.textInput.textChanged.connect(self.read_input)
         ##################################################
         # Initialise
-        self.drivers = ['', 'Andy', 'Chris', 'Dan', 'Richard', 'DriverX']
+        self.drivers = ['Driver...', 'Andy', 'Chris', 'Dan', 'Richard', 'DriverX']
         self.months = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07',
                        'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
         self.selectDriver.addItems(self.drivers)
-        # set to insert driver names alphabetically
         self.driver = ""
         self.key_list = []  # temp store for model_dict keys
         self.model_dict = {}
         self.infringements = ""
         today = datetime.date.today()
         self.year = today.year
+        self.dirty = False
         self.init_model()
 
     def init_model(self):
@@ -170,7 +190,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def year_back(self):
         self.year -= 1
-        if str(self.year) not in self.model_dict:
+        if self.year not in self.model_dict:
             self.init_model()
         else:
             self.label.setText(str(self.year))
@@ -179,7 +199,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def year_forward(self):
         self.year += 1
-        if str(self.year) not in self.model_dict:
+        if self.year not in self.model_dict:
             self.init_model()
         else:
             self.label.setText(str(self.year))
@@ -188,28 +208,45 @@ class MainWindow(QtGui.QMainWindow):
 
     def clear_input(self):
         self.textInput.clear()
-        # self.activity_list = []
         self.timeLine.clear_timeline()
         self.dayView.clearContents()
         self.commentsBox.clear()
         self.calculator.clear()
 
     def select_driver(self, driver):
-        self.init_model()
-        self.clear_input()
-        self.driver = driver
-        path = './Data/' + self.driver + '.xml'  # Test Path
-        dataIO = DataIO(self, path)
-        dataIO.get_years()
-        for year in self.key_list:
-            model = Model()
-            self.model_dict[year] = model
-        dataIO.open()
-        self.set_model()
+        if self.dirty:
+            messageBox = QtGui.QMessageBox()
+            reply = messageBox.question(messageBox, "UnSaved Data", "Save Data?",
+                                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel)
+            if reply == QtGui.QMessageBox.Cancel:
+                pass
+            elif reply == QtGui.QMessageBox.Yes:
+                self.save()
+                self.init_driver(driver)
+            else:
+                prev_driver = self.drivers.index(self.driver)
+                self.selectDriver.setCurrentIndex(prev_driver)
+        else:
+            self.init_driver(driver)
+
+    def init_driver(self, driver):
+        if driver != "Driver...":
+            self.init_model()
+            self.clear_input()
+            self.driver = driver
+            self.dirty = False
+            # path = './Data/' + self.driver + '.xml'  # Test Path
+            path = '/home/andy/Dropbox/GrosvenorRemovals/DriversCards/' + self.driver + '.xml'
+            dataIO = DataIO(self, path)
+            dataIO.get_years()
+            for year in self.key_list:
+                model = Model()
+                self.model_dict[year] = model
+            dataIO.open()
+            self.set_model()
 
     def set_model(self):
-        # print(self.model_dict)
-        self.model = self.model_dict[str(self.year)]  # does this need to be global model?
+        self.model = self.model_dict[self.year]
         self.model.set_year(self.year)
         self.yearView.setModel(self.model)
         self.yearView.set_selection_model(self.model)
@@ -222,17 +259,18 @@ class MainWindow(QtGui.QMainWindow):
         text = self.textInput.toPlainText()
         text = str(text)
         date_line = re.search(r'Activities on (.*?) .*', text)
-        date = (date_line.group())
-        day = (date[22:24])
-        day = day.strip()
-        day = day.zfill(2)
-        day = int(day)
-        month_str = (date[18:21])
-        month = self.months[month_str]
-        month = int(month)
-        year = (date[-5:-1])
-        year = int(year)
-        self.date = QtCore.QDate(year, month, day)
+        if date_line:
+            date = (date_line.group())
+            day = (date[22:24])
+            day = day.strip()
+            day = day.zfill(2)
+            day = int(day)
+            month_str = (date[18:21])
+            month = self.months[month_str]
+            month = int(month)
+            year = (date[-5:-1])
+            year = int(year)
+            self.date = QtCore.QDate(year, month, day)
 
         # Get Activities
         working = re.findall(r'work, from (.*?) to (.*?) .*', text)
@@ -267,9 +305,9 @@ class MainWindow(QtGui.QMainWindow):
 
         self.timeLine.add_activities(activity_list)
         activity_list.sort(key=lambda x: x.start, reverse=False)
-        #for item in activity_list:
         self.calculator.timers(activity_list)
         self.show_activities(activity_list)
+        self.buttonAdd.setText("Add")
 
     def show_activities(self, activity_list):
         self.dayView.clearContents()
@@ -286,88 +324,63 @@ class MainWindow(QtGui.QMainWindow):
         self.dayView.setRowCount(num)
 
     def add(self):
-        # Invoked when add button pressed
+        # Invoked from add button; adds day to model
         date = QtCore.QDate(self.date)
         activities = self.textInput.toPlainText()
         comments = self.commentsBox.toPlainText()
-        # TODO Method specially for this
-
         year = date.year()
+        if year not in self.model_dict.keys():
+            model = Model()
+            self.model_dict[year] = model
         month = date.month()
         day = date.day()
         year_instance = Year(self, year)
         col = year_instance.get_column(month, day)
         row = month - 1
-        current_model = self.model_dict[str(year)]
+        current_model = self.model_dict[year]
         item = current_model.item(row, col)
         comment = QtGui.QStandardItem()
         activity = QtGui.QStandardItem()
+        infringed = QtGui.QStandardItem()
         item.setChild(0, 2, comment)
         item.setChild(0, 3, activity)
+        item.setChild(0, 4, infringed)
         comment.setData(comments)
         activity.setData(activities)
-        item.setBackground(QtGui.QColor(255, 158, 158))
-        if self.infringements != "":
-            item.setBackground(QtGui.QColor(255, 0, 0))
-
-    def add_day(self, date, comments, activities):
-        # Invoked from DataIO when it opens a file
-        if date is not None:
-            year = date[0:4]
-            month = date[5:7]
-            day = date[8:10]
-            month = int(month)
-            day = int(day)
-            year_instance = Year(self, year)
-            col = year_instance.get_column(month, day)
-            row = month - 1
-            current_model = self.model_dict[year]
-            item = current_model.item(row, col)
-            comment = QtGui.QStandardItem()
-            activity = QtGui.QStandardItem()
-            item.setChild(0, 2, comment)
-            item.setChild(0, 3, activity)
-            comment.setData(comments)
-            activity.setData(activities)
-            item.setBackground(QtGui.QColor(255, 158, 158))
-            if self.infringements != "":
-                item.setBackground(QtGui.QColor(255, 0, 0))
-            self.infringements = ""
+        infringed.setData(self.infringements)
+        item.setBackground(QtGui.QColor(109, 255, 174))
+        if infringed.data() == "hgv":
+            item.setBackground(QtGui.QColor(255, 150, 150))
+        if infringed.data() == "wtd":
+            item.setBackground(QtGui.QColor(255, 213, 140))
+        if infringed.data() == "both":
+            pixmap = QtGui.QPixmap('./icons/dual_infr.svg')
+            brush = QtGui.QBrush(pixmap)
+            item.setBackground(brush)
+        self.infringements = ""
+        self.dirty = True
+        if self.buttonAdd.text() == "Add":
+            self.clear_input()
+        self.set_model()
 
     def save(self):
-        print(self.model_dict)
-        for key in self.model_dict:
-            model = self.model_dict[key]
-            # Seems like year needs to be switched to add other years to model_dict
-            data = []
-            for row in range(model.rowCount()):
-                data.append([])
-                for column in range(model.columnCount()):
-                    # index = model.index(row, column)
-                    item = model.item(row, column)
-                    # date = model(index)
-                    if item.child(0, 3) is not None:
-                        date = item.child(0, 1)  # Qdate
-                        comm = item.child(0, 2)  # Comments
-                        act = item.child(0, 3)  # Activities
-                        date = date.data()
-                        date = date.toString()
-                        comment = comm.data()
-                        activity = act.data()
+        # path = './Data/' + driver + '.xml'  # Test Path
+        path = '/home/andy/Dropbox/GrosvenorRemovals/DriversCards/' + self.driver + '.xml'
+        dataIO = DataIO(self, path)
+        dataIO.save(self.model_dict)
+        self.dirty = False
 
-                        data[row].append(date)
-                        print(date)
-                        print(comment)
-
-            # path = './Data/' + self.driver + '.xml'  # Test path
-            # dataIO = DataIO(self, path)
-            # dataIO.save()
-
-            # TODO add infringement highlighting
+    def closeEvent(self, event):
+        if self.dirty:
+            messageBox = QtGui.QMessageBox()
+            reply = messageBox.question(messageBox, "UnSaved Data", "Save Data?",
+                                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel)
+            if reply == QtGui.QMessageBox.Cancel:
+                event.ignore()
+            elif reply == QtGui.QMessageBox.Yes:
+                event.ignore()
+                self.save()
+        else:
+            event.accept()
 
 
-if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
-    myapp = MainWindow()
-    myapp.show()
-    sys.exit(app.exec_())

@@ -1,11 +1,13 @@
 import sys
 import xml.etree.ElementTree as ET
 sys.path.append("./Modules")
+from PyQt4 import QtCore, QtGui
+from Year import *
 
 class DataIO:
     def __init__(self, parent, path):
         self.path = path
-        self.parent = parent    # i.e. Ui_MainWindow
+        self.parent = parent
 
     def get_years(self):
         with open(self.path, "r") as fo:
@@ -13,7 +15,8 @@ class DataIO:
             root = tree.getroot()
             for date in root:
                 if date.text is not None:
-                    year = date.text[0:4]
+                    date = QtCore.QDate.fromString(date.text)
+                    year = date.year()
                 else:
                     year = str(self.parent.year)
                 if year not in self.parent.key_list:
@@ -24,37 +27,76 @@ class DataIO:
             tree = ET.ElementTree(file=self.path)
             root = tree.getroot()
             for date in root:
-                activities = date[0]
-                self.add_flags(activities)
-                comments = date[1]
-                self.parent.add_day(date.text, comments.text, activities.text)
+                comms = date[0]
+                acts = date[1]
+                infrs = date[2]
+                self.add_day(date.text, comms.text, acts.text, infrs.text)
 
-    def add_flags(self, activities):
-        # calc for each day in turn to add infr_flag and set colour etc.
-        self.parent.textInput.clear()
-        self.parent.textInput.setText(activities.text)
-        self.parent.read_input()
-        self.parent.clear_input()
+    def add_day(self, date, comments, activities, infringements):
+        if date is not None:
+            date = QtCore.QDate.fromString(date)
+            day = date.day()
+            month = date.month()
+            year = date.year()
+            year_instance = Year(self, year)
+            col = year_instance.get_column(month, day)
+            row = month - 1
+            current_model = self.parent.model_dict[year]
+            item = current_model.item(row, col)
+            comment = QtGui.QStandardItem()
+            activity = QtGui.QStandardItem()
+            infringed = QtGui.QStandardItem()
+            item.setChild(0, 2, comment)
+            item.setChild(0, 3, activity)
+            item.setChild(0, 4, infringed)
+            comment.setData(comments)
+            activity.setData(activities)
+            infringed.setData(infringements)
+            if infringed.data() is None:
+                item.setBackground(QtGui.QColor(109, 255, 174))
+            if infringed.data() == "hgv":
+                item.setBackground(QtGui.QColor(255, 150, 150))
+            if infringed.data() == "wtd":
+                item.setBackground(QtGui.QColor(255, 205, 117))
+            if infringed.data() == "both":
+                pixmap = QtGui.QPixmap('./icons/dual_infr.svg')
+                brush = QtGui.QBrush(pixmap)
+                item.setBackground(brush)
+            self.parent.infringements = ""
 
-    def save(self):
-        model = self.parent.model
+    def save(self, model_dict):
         root = ET.Element('Root')
         tree = ET.ElementTree(root)
-        mod_root = model.invisibleRootItem()
-        for i in range(0, mod_root.rowCount()):
-            date = ET.SubElement(root, "Date")
-            activities = ET.SubElement(date, 'Activities')
-            comments = ET.SubElement(date, 'Comments')
-            day = mod_root.child(i)
-            date.text = day.text()  # The xml text
-            comm = model.item(day.row(), 1)
-            comments.text = comm.text()
-            acts = model.item(day.row(), 2)
-            activities.text = acts.text()
-
+        for key in model_dict:
+            model = model_dict[key]
+            # Seems like year needs to be switched to add other years to model_dict
+            data = []
+            for row in range(model.rowCount()):
+                data.append([])
+                for column in range(model.columnCount()):
+                    item = model.item(row, column)
+                    if item.child(0, 3) is not None:
+                        date = item.child(0, 1)  # Qdate
+                        comments = item.child(0, 2)  # Comments
+                        activities = item.child(0, 3)  # Activities
+                        infringements = item.child(0, 4)   # Infringements
+                        date = date.data()
+                        date = date.toString()
+                        comments = comments.data()
+                        activities = activities.data()
+                        infringements = infringements.data()
+                        # Set ET sub-elements
+                        dte = ET.SubElement(root, "Date")
+                        comms = ET.SubElement(dte, 'Comments')
+                        acts = ET.SubElement(dte, 'Activities')
+                        infrs = ET.SubElement(dte, 'Infringements')
+                        dte.text = date
+                        comms.text = comments
+                        acts.text = activities
+                        infrs.text = infringements
         with open(self.path, "wb") as fo:   # Must be 'wb', not 'w' in Python 3
             tree.write(fo)
 
-        # TODO append to existing file, error message if no driver selected
+        # TODO error message if no driver selected
 
 

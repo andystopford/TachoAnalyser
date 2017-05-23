@@ -24,24 +24,13 @@ class YearView(QtGui.QTableView):
     def get_selection(self):
         index = self.selectedIndexes()[0]
         day = self.parent.model.itemFromIndex(index)
-        date = day.child(0, 1)
-        comm = day.child(0, 2)
         act = day.child(0, 3)
-        """
-                if comm is not None:
-            print(comm.data())
-        else:
-            print("No comment set")
-        if act is not None:
-            print(act.data())
-        else:
-            print("No activities recorded")
-            """
-
         self.parent.clear_input()
-        #self.parent.commentsBox.setText(comm.data())
-        self.parent.textInput.setText(act.data())
-        self.parent.read_input()
+        if act is not None:
+            self.parent.commentsBox.setText(day.child(0, 2).data())
+            self.parent.textInput.setText(act.data())
+            self.parent.read_input()
+            self.parent.buttonAdd.setText("Save Comments")
 
     def right_click(self):
         menu = QtGui.QMenu(self)
@@ -52,6 +41,7 @@ class YearView(QtGui.QTableView):
 
     def delete_item(self):
         print("Delete")
+        pass
         index = self.selectedIndexes()[0]
         date = self.parent.model.itemFromIndex(index)
         date.removeRow(0)

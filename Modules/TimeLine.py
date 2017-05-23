@@ -84,9 +84,9 @@ class TimeLine(QtGui.QGraphicsScene):
             if item.mode == "Driving":
                 col.setRgb(255, 150, 150)  # Pink
             if item.mode == "Break":
-                col.setRgb(150, 255, 150)  # Pale green
+                col.setRgb(109, 255, 174)  # Pale green
             if item.mode == "Working":
-                col.setRgb(255, 213, 140)  # pale orange
+                col.setRgb(255, 205, 117)  # pale orange
             start = item.start
             duration = item.duration
             self.activity_box(start, 20, duration, col)

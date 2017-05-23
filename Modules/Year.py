@@ -1,7 +1,8 @@
-from PyQt4 import QtCore
+
 import itertools
 import calendar
-import datetime
+
+
 class Year:
     def __init__(self, parent, year):
         """ Make list of the year's dates sorted by month """
