@@ -5,26 +5,13 @@ from PyQt4 import QtCore, QtGui
 from Year import *
 
 class DataIO:
-    def __init__(self, parent, path):
-        self.path = path
+    def __init__(self, parent):
         self.parent = parent
 
-    def get_years(self):
-        with open(self.path, "r") as fo:
-            tree = ET.ElementTree(file=self.path)
-            root = tree.getroot()
-            for date in root:
-                if date.text is not None:
-                    date = QtCore.QDate.fromString(date.text)
-                    year = date.year()
-                else:
-                    year = str(self.parent.year)
-                if year not in self.parent.key_list:
-                    self.parent.key_list.append(year)
-
-    def open(self):
-        with open(self.path, "r") as fo:
-            tree = ET.ElementTree(file=self.path)
+    def open(self, path):
+        """Opens the selected driver's year file"""
+        with open(path, "r") as fo:
+            tree = ET.ElementTree(file=path)
             root = tree.getroot()
             for date in root:
                 comms = date[0]
@@ -33,6 +20,8 @@ class DataIO:
                 self.add_day(date.text, comms.text, acts.text, infrs.text)
 
     def add_day(self, date, comments, activities, infringements):
+        """For each recorded day in the selected driver's year file, populates
+        the appropriate model"""
         if date is not None:
             date = QtCore.QDate.fromString(date)
             day = date.day()
@@ -65,11 +54,11 @@ class DataIO:
             self.parent.infringements = ""
 
     def save(self, model_dict):
-        root = ET.Element('Root')
-        tree = ET.ElementTree(root)
         for key in model_dict:
+            root = ET.Element('Root')
+            tree = ET.ElementTree(root)
+            path = './Data/' + self.parent.driver + str(key) + '.xml'
             model = model_dict[key]
-            # Seems like year needs to be switched to add other years to model_dict
             data = []
             for row in range(model.rowCount()):
                 data.append([])
@@ -80,23 +69,25 @@ class DataIO:
                         comments = item.child(0, 2)  # Comments
                         activities = item.child(0, 3)  # Activities
                         infringements = item.child(0, 4)   # Infringements
-                        date = date.data()
-                        date = date.toString()
-                        comments = comments.data()
-                        activities = activities.data()
-                        infringements = infringements.data()
-                        # Set ET sub-elements
-                        dte = ET.SubElement(root, "Date")
-                        comms = ET.SubElement(dte, 'Comments')
-                        acts = ET.SubElement(dte, 'Activities')
-                        infrs = ET.SubElement(dte, 'Infringements')
-                        dte.text = date
-                        comms.text = comments
-                        acts.text = activities
-                        infrs.text = infringements
-        with open(self.path, "wb") as fo:   # Must be 'wb', not 'w' in Python 3
-            tree.write(fo)
+                        if date:
+                            date = date.data()
+                            date = date.toString()
+                            print(date)
+                            comments = comments.data()
+                            activities = activities.data()
+                            infringements = infringements.data()
+                            # Set ET sub-elements
+                            dte = ET.SubElement(root, "Date")
+                            comms = ET.SubElement(dte, 'Comments')
+                            acts = ET.SubElement(dte, 'Activities')
+                            infrs = ET.SubElement(dte, 'Infringements')
+                            dte.text = date
+                            comms.text = comments
+                            acts.text = activities
+                            infrs.text = infringements
+                            with open(path, "wb") as fo:
+                                tree.write(fo)
 
-        # TODO error message if no driver selected
+
 
 

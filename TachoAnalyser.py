@@ -1,4 +1,4 @@
-#!/usr/bin/python3.4
+#!/usr/bin/python3.6
 ######################################################################
 
 # Copyright (C)2016 Andy Stopford
@@ -15,13 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Version 2.1 - Automatic calculate and clear
+# Version 2.5 - Save to individual year files
 #######################################################################
 import sys
 
 sys.path.append("./Modules")
 sys.path.append("./Data")
 sys.path.append("./icons")
+import os.path
 from PyQt4 import QtCore, QtGui, Qt
 from Activities import *
 from Calculator import *
@@ -51,7 +52,7 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 
-####################################################################################
+###############################################################################
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -148,7 +149,8 @@ class MainWindow(QtGui.QMainWindow):
         splitter_bottom.addWidget(self.workGraph)
         box.addWidget(splitter_bottom)
         self.centralWidget.setLayout(box)
-        stylesheet = "QSplitter::handle{background: gray; width: 1px; height: 1px;}"
+        stylesheet = "QSplitter::handle{background: gray; " \
+                     "width: 1px; height: 1px;}"
         splitter_bottom.setStyleSheet(stylesheet)
         QtGui.QApplication.setStyle(Qt.QStyleFactory.create('cleanlooks'))
         self.resize(1125, 702)
@@ -165,9 +167,11 @@ class MainWindow(QtGui.QMainWindow):
         self.textInput.textChanged.connect(self.read_input)
         ##################################################
         # Initialise
-        self.drivers = ['Driver...', 'Andy', 'Chris', 'Dan', 'Richard', 'DriverX']
-        self.months = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07',
-                       'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+        self.drivers = ['Driver...', 'Andy', 'Chris', 'Dan',
+                        'Richard', 'DriverX']
+        self.months = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
+                       'May': '05', 'Jun': '06', 'Jul': '07','Aug': '08',
+                       'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
         self.selectDriver.addItems(self.drivers)
         self.driver = ""
         self.key_list = []  # temp store for model_dict keys
@@ -192,6 +196,7 @@ class MainWindow(QtGui.QMainWindow):
         self.year -= 1
         if self.year not in self.model_dict:
             self.init_model()
+            self.get_file()
         else:
             self.label.setText(str(self.year))
             self.clear_input()
@@ -201,6 +206,7 @@ class MainWindow(QtGui.QMainWindow):
         self.year += 1
         if self.year not in self.model_dict:
             self.init_model()
+            self.get_file()
         else:
             self.label.setText(str(self.year))
             self.clear_input()
@@ -216,8 +222,10 @@ class MainWindow(QtGui.QMainWindow):
     def select_driver(self, driver):
         if self.dirty:
             messageBox = QtGui.QMessageBox()
-            reply = messageBox.question(messageBox, "UnSaved Data", "Save Data?",
-                                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel)
+            reply = messageBox.question(messageBox, "UnSaved Data",
+                                        "Save Data?",QtGui.QMessageBox.Yes |
+                                        QtGui.QMessageBox.No |
+                                        QtGui.QMessageBox.Cancel)
             if reply == QtGui.QMessageBox.Cancel:
                 pass
             elif reply == QtGui.QMessageBox.Yes:
@@ -235,14 +243,15 @@ class MainWindow(QtGui.QMainWindow):
             self.clear_input()
             self.driver = driver
             self.dirty = False
-            # path = './Data/' + self.driver + '.xml'  # Test Path
-            path = '/home/andy/Dropbox/GrosvenorRemovals/DriversCards/' + self.driver + '.xml'
-            dataIO = DataIO(self, path)
-            dataIO.get_years()
-            for year in self.key_list:
-                model = Model()
-                self.model_dict[year] = model
-            dataIO.open()
+            self.get_file()
+
+    def get_file(self):
+        file = './Data/' + self.driver + str(self.year) + '.xml'
+        if os.path.isfile(file):
+            dataIO = DataIO(self)
+            model = Model()
+            self.model_dict[self.year] = model
+            dataIO.open(file)
             self.set_model()
 
     def set_model(self):
@@ -329,9 +338,15 @@ class MainWindow(QtGui.QMainWindow):
         activities = self.textInput.toPlainText()
         comments = self.commentsBox.toPlainText()
         year = date.year()
-        if year not in self.model_dict.keys():
-            model = Model()
-            self.model_dict[year] = model
+        self.year = year
+        self.label.setText(str(self.year))
+        if self.year not in self.model_dict:
+            self.init_model()
+            self.get_file()
+        else:
+            self.label.setText(str(self.year))
+            self.clear_input()
+            self.set_model()
         month = date.month()
         day = date.day()
         year_instance = Year(self, year)
@@ -364,17 +379,18 @@ class MainWindow(QtGui.QMainWindow):
         self.set_model()
 
     def save(self):
-        # path = './Data/' + driver + '.xml'  # Test Path
-        path = '/home/andy/Dropbox/GrosvenorRemovals/DriversCards/' + self.driver + '.xml'
-        dataIO = DataIO(self, path)
+        dataIO = DataIO(self)
         dataIO.save(self.model_dict)
         self.dirty = False
 
     def closeEvent(self, event):
         if self.dirty:
             messageBox = QtGui.QMessageBox()
-            reply = messageBox.question(messageBox, "UnSaved Data", "Save Data?",
-                                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel)
+            reply = messageBox.question(messageBox,
+                                        "UnSaved Data", "Save Data?",
+                                        QtGui.QMessageBox.Yes |
+                                        QtGui.QMessageBox.No |
+                                        QtGui.QMessageBox.Cancel)
             if reply == QtGui.QMessageBox.Cancel:
                 event.ignore()
             elif reply == QtGui.QMessageBox.Yes:

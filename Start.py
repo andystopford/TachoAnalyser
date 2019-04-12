@@ -1,7 +1,7 @@
 #!/usr/bin/python3.4
 import sys
 
-from PyQt4 import QtGui, Qt
+from PyQt4 import QtGui
 
 from TachoAnalyser import MainWindow
 
