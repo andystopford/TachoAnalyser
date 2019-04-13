@@ -9,7 +9,8 @@ class YearView(QtGui.QTableView):
         vert_header = self.verticalHeader()
         vert_header.setResizeMode(QtGui.QHeaderView.Stretch)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.connect(self, QtCore.SIGNAL("customContextMenuRequested(QPoint)"), self.right_click)
+        self.connect(self, QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.right_click)
 
     def set_selection_model(self, model):
         """
@@ -18,7 +19,8 @@ class YearView(QtGui.QTableView):
         """
         super(YearView, self).setModel(model)
         self.connect(self.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, "
+                                   "QItemSelection)"),
                      self.get_selection)
 
     def get_selection(self):

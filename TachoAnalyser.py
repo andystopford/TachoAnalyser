@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Version 2.5 - Save to individual year files
+# Version 2.51 - Save to individual year files
 #######################################################################
 import sys
 
@@ -183,12 +183,15 @@ class MainWindow(QtGui.QMainWindow):
         self.init_model()
 
     def init_model(self):
-        # Placeholder model - called at startup or if no driver selected
-        # so that the calendar dates can be filled in
+        """Placeholder model - called at startup or if no driver selected so
+        that the calendar dates can be filled in, or if no model has been
+        initialised for driver.
+        """
         model = Model()
         model.set_year(self.year)
         self.yearView.setModel(model)
         self.yearView.set_selection_model(model)
+        self.model_dict[self.year] = model
         self.label.setText(str(self.year))
         self.clear_input()
 
@@ -262,8 +265,8 @@ class MainWindow(QtGui.QMainWindow):
         self.label.setText(str(self.year))
 
     def read_input(self):
-        # Activity change info from readesm is pasted in and converted to
-        # minutes for start, end and duration
+        """Activity change info from readesm is pasted in and converted to
+        minutes for start, end and duration"""
         activity_list = []
         text = self.textInput.toPlainText()
         text = str(text)
@@ -333,7 +336,7 @@ class MainWindow(QtGui.QMainWindow):
         self.dayView.setRowCount(num)
 
     def add(self):
-        # Invoked from add button; adds day to model
+        """Invoked from add button; adds day to model"""
         date = QtCore.QDate(self.date)
         activities = self.textInput.toPlainText()
         comments = self.commentsBox.toPlainText()

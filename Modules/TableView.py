@@ -10,7 +10,8 @@ class TableView(QtGui.QTableView):
         self.parent = parent
         self.set_pos()
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.connect(self, QtCore.SIGNAL("customContextMenuRequested(QPoint)"), self.right_click)
+        self.connect(self, QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.right_click)
 
     def set_pos(self):
         self.setGeometry(QtCore.QRect(1, 38, 340, 414))
@@ -22,8 +23,8 @@ class TableView(QtGui.QTableView):
         """
         super(TableView, self).setModel(self.parent.model)
         self.connect(self.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                     self.get_selection)
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, "
+                                   "QItemSelection)"), self.get_selection)
         self.setColumnHidden(2, True)
         header = self.horizontalHeader()
         header.setResizeMode(1)

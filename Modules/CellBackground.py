@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui, Qt
+from PyQt4 import QtCore, QtGui
 
 
 class CellBackground(QtGui.QStyledItemDelegate):

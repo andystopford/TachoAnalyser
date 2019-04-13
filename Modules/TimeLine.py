@@ -7,7 +7,7 @@ class TimeLine(QtGui.QGraphicsScene):
     def __init__(self, parent):
         QtGui.QGraphicsScene.__init__(self)
         self.parent = parent
-        self.setSceneRect(0, 0, 1440, 50)   # Needs to be multiple of 1440 minutes (1 day)
+        self.setSceneRect(0, 0, 1440, 50)   # Multiple of 1440 minutes (1 day)
         col = QtGui.QColor()
         col.setRgb(255, 0, 0)
         self.box_list = []
@@ -35,7 +35,8 @@ class TimeLine(QtGui.QGraphicsScene):
             hour = hour.zfill(2)
             hour = hour + ':' + '00'
             hour_label = QtGui.QGraphicsTextItem(hour)
-            hour_label.setTransform(xform.translate(hour_x_xform, hour_y_xform))
+            hour_label.setTransform(xform.translate(hour_x_xform,
+                                                    hour_y_xform))
             item_list.append(hour_label)
             hour_x_xform = 60
             hour_y_xform = 0
@@ -100,7 +101,8 @@ class TimeLine(QtGui.QGraphicsScene):
         self.box_list.append(box)
 
     def infr_flag(self, time, rule):
-        # To align the flag's pointer correctly, subtract 25 from the desired minute
+        # To align the flag's pointer correctly, subtract 25 from the
+        # desired minute
         xform = QtGui.QTransform()
         if rule == "hgv":
             flag = QtSvg.QGraphicsSvgItem('./icons/drive_infr.svg')
