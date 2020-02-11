@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Version 2.51 - Save to individual year files
+# Version 2.5.2 - Save to individual year files
 #######################################################################
 import sys
 
@@ -197,6 +197,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def year_back(self):
         self.year -= 1
+        self.select_driver(self.driver)
         if self.year not in self.model_dict:
             self.init_model()
             self.get_file()
@@ -207,6 +208,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def year_forward(self):
         self.year += 1
+        self.select_driver(self.driver)
         if self.year not in self.model_dict:
             self.init_model()
             self.get_file()
